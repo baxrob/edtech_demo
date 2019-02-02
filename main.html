@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>edtech ad demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+html {
+    height: 100%;
+}
+body {
+    margin: 0;
+    font-family: sans-serif;
+    height: 100%;
+    overflow: hidden;
+}
+</style>
+
+<script src="WebAudioTrack.js"></script>
+<script>
+function qs() {
+    return document.querySelector.apply(document, arguments);
+}
+document.addEventListener('DOMContentLoaded', function(evt) {
+    var elems = {
+        status: qs('.status'),
+        record: qs('.record'),
+        play: qs('.play'),
+        wave: qs('.perform canvas'),
+        share: qs('.share')
+    };
+    var handlers = {
+        record: ['click', function(evt) {
+        }],
+        play: ['click', function(evt) {
+        }],
+        share: ['click', function(evt) {
+        }]
+    };
+
+    function initAudio(options) {
+		var track = new WebAudioTrack();
+        track.startRecording();
+    }
+    function attachHandlers() {
+    }
+    function init(options) {
+        navigator.mediaDevices.getUserMedia({audio: true})
+        .then(function(stream) {
+            console.log(stream);
+            initAudio();
+        })
+        .catch(function(err) {
+            //console.log('getUserMedia error:', err);
+            console.log(err.name, err.message);
+            //console.error(err);
+			elems.status.textContent = err;
+        });
+		/*
+		*/
+        attachHandlers();
+    }
+    
+    init();
+});
+</script>
+</head>
+
+<body>
+<nav>
+</nav>
+    <div class="logo">edtech demo</div>
+    <div class="status"></div>
+<main>
+    <button class="record"></button>
+    <div class="perform">
+        <button class="play"></button>
+        <canvas></canvas>
+        <button class="share">email</button>
+    </div>
+</main>
+</body>
+
+</html>
