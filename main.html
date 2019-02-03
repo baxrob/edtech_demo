@@ -16,6 +16,23 @@ body {
     height: 100%;
     overflow: hidden;
 }
+nav {
+    width: 100%;
+}
+nav div {
+    width: 48%;
+    float: left;
+    padding: 1%;
+    outline: 1px solid #ccc;
+}
+.perform > * {
+    display: block;
+    outline: 1px solid #eee;
+}
+.perform input, .perform canvas {
+	width: 70%;
+}
+main
 </style>
 
 <script src="WebAudioTrack.js"></script>
@@ -23,11 +40,15 @@ body {
 function qs() {
     return document.querySelector.apply(document, arguments);
 }
+function objType(obj) {
+}
 document.addEventListener('DOMContentLoaded', function(evt) {
     var elems = {
         status: qs('.status'),
         record: qs('.record'),
         play: qs('.play'),
+        // XXX:
+        audio: qs('audio'),
         wave: qs('.perform canvas'),
         share: qs('.share')
     };
@@ -37,16 +58,33 @@ document.addEventListener('DOMContentLoaded', function(evt) {
         play: ['click', function(evt) {
         }],
         share: ['click', function(evt) {
-        }]
+        }],
+        recordEnd: function(evt) {
+        }
     };
+    var labels = {
+        record: ['record', 'stop'],
+        play: ['play', 'stop']
+    };
+    function setLabel(elem, text) {
+        elem.textContent
+    }
 
     function initAudio(options) {
 		var track = new WebAudioTrack();
         track.startRecording();
+        setTimeout(function() {
+            track.stopRecording(function() {
+                console.log('done', track.getRecordingTime());
+                //elems.audio.src = track.getBlobSrc();
+            });
+            console.log('ok', track.getRecordingTime());
+        }, 3000);
     }
     function attachHandlers() {
     }
     function init(options) {
+		/*
         navigator.mediaDevices.getUserMedia({audio: true})
         .then(function(stream) {
             console.log(stream);
@@ -58,8 +96,8 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             //console.error(err);
 			elems.status.textContent = err;
         });
-		/*
 		*/
+        initAudio();
         attachHandlers();
     }
     
@@ -70,13 +108,18 @@ document.addEventListener('DOMContentLoaded', function(evt) {
 
 <body>
 <nav>
-</nav>
     <div class="logo">edtech demo</div>
-    <div class="status"></div>
+    <div class="status">&nbsp;</div>
+</nav>
 <main>
-    <button class="record"></button>
+    <button class="record" disabled>record</button>
     <div class="perform">
-        <button class="play"></button>
+        <button class="play">play</button>
+        <!--
+        <button class="play">&nbsp;</button>
+        <audio controls></audio>
+        -->
+        <input type="range" disabled>
         <canvas></canvas>
         <button class="share">email</button>
     </div>

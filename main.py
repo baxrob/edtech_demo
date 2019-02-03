@@ -9,8 +9,10 @@ oauth = OAuth(app)
 
 linkedin = oauth.remote_app(
     'linkedin',
-    consumer_key='k8fhkgkkqzub',
-    consumer_secret='ZZtLETQOQYNDjMrz',
+    #consumer_key='k8fhkgkkqzub',
+    #consumer_secret='ZZtLETQOQYNDjMrz',
+    consumer_key='863rzse5mrubtb',
+    consumer_secret='Ju9kwzCg2cIcBugP',
     request_token_params={
         'scope': 'r_basicprofile',
         'state': 'RandomString',
@@ -46,9 +48,10 @@ def logout():
 def authorized():
     resp = linkedin.authorized_response()
     if resp is None:
-        return 'Access denied: reason=%s error=%s' % (
-            request.args['error_reason'],
-            request.args['error_description']
+        return 'Access denied: reason=%s error=%s state=%s' % (
+            request.args['error'],
+            request.args['error_description'],
+            request.args['state'] 
         )
     session['linkedin_token'] = (resp['access_token'], '')
     me = linkedin.get('people/~')
