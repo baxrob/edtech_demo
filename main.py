@@ -55,6 +55,7 @@ def authorized():
         )
     session['linkedin_token'] = (resp['access_token'], '')
     me = linkedin.get('people/~')
+    me = linkedin.get('people/~:(id,num-connections,picture-url)?format=json')
     return jsonify(me.data)
 
 
