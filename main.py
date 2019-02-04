@@ -1,8 +1,9 @@
-from flask import Flask, redirect, url_for, session, request, jsonify
+from flask import Flask, redirect, url_for, session, request, jsonify, \
+    render_template
 from flask_oauthlib.client import OAuth
 
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.')
 app.debug = True
 app.secret_key = 'development'
 oauth = OAuth(app)
@@ -14,7 +15,7 @@ linkedin = oauth.remote_app(
     consumer_key='863rzse5mrubtb',
     consumer_secret='Ju9kwzCg2cIcBugP',
     request_token_params={
-        'scope': 'r_basicprofile',
+        'scope': 'r_basicprofile r_emailaddress',
         'state': 'RandomString',
     },
     base_url='https://api.linkedin.com/v1/',
@@ -31,6 +32,14 @@ def index():
         me = linkedin.get('people/~')
         return jsonify(me.data)
     return redirect(url_for('login'))
+
+@app.route('/public')
+def public():
+    return render_template('main.html')
+
+@app.route('/upload/<int:file_id>', methods=['POST']):
+def upload(file_id):
+    print file_id, request.files['file']
 
 
 @app.route('/login')

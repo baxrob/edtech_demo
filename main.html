@@ -14,64 +14,182 @@ body {
     margin: 0;
     font-family: sans-serif;
     height: 100%;
-    overflow: hidden;
 }
 nav {
     width: 100%;
+	overflow: auto;
 }
-nav div {
-    width: 48%;
+nav > div {
     float: left;
-    padding: 1%;
-    outline: 1px solid #ccc;
 }
+nav .logo {
+    width: 48%;
+    padding: 1%;
+}
+nav .status {
+    width: 50%;
+    font-size: 0.8em;
+}
+nav .status > div {
+    height: 48%;
+    padding: 1%;
+    outline: 1px solid #eee;
+}
+main {
+	padding: 1% 20% 10% 20%;
+    border-top: 1px solid #ccc;
+
+    padding-top: 2%;
+}
+.perform {
+    display: none;
+}
+/*
 .perform > * {
     display: block;
     outline: 1px solid #eee;
 }
+*/
 .perform input, .perform canvas {
-	width: 70%;
+	width: 100%;
 }
-main
+button {
+    margin: 1%;
+
+    /*
+    */
+    display: block;
+    margin-top: 7%;
+}
+input {
+    margin: 1%;
+}
+canvas {
+    margin: 2% 1% 2% 1%;
+    outline: 1px solid #ccc;
+}
 </style>
 
-<script src="WebAudioTrack.js"></script>
+<script src="static/WebAudioTrack.js"></script>
 <script>
 function qs() {
     return document.querySelector.apply(document, arguments);
 }
 function objType(obj) {
+    return Object.prototype.toString.call(obj).match(/(\w+)\]/)[1];
+}
+function xhr(options) {
+    var req = new XMLHttpRequest();
+    req.onerror = function(evt) {
+        console.log('err.evt', evt);
+        console.log('err.req', req);
+    };
+    req.onreadystatechange = function(evt) {
+        if (req.readyState == 4 & req.status == 200) {
+            options.success && options.success(evt);
+        }
+    };
+    req.open(options.method || 'GET', options.url);
+    req.send(options.body || null);
 }
 document.addEventListener('DOMContentLoaded', function(evt) {
     var elems = {
-        status: qs('.status'),
+        status: {
+            audio: qs('.status .audio'),
+            transport: qs('.status .transport'),
+        },
         record: qs('.record'),
+        perform: qs('.perform'),
         play: qs('.play'),
         // XXX:
         audio: qs('audio'),
         wave: qs('.perform canvas'),
         share: qs('.share')
     };
-    var handlers = {
-        record: ['click', function(evt) {
-        }],
-        play: ['click', function(evt) {
-        }],
-        share: ['click', function(evt) {
-        }],
-        recordEnd: function(evt) {
-        }
-    };
     var labels = {
         record: ['record', 'stop'],
         play: ['play', 'stop']
     };
-    function setLabel(elem, text) {
+    function setStatus(field, message) {
+        if (message) {
+            elems.status[field].textContent = message;
+        } else {
+            elems.status[field].innerHTML = '&nbsp;';
+        }
+    }
+    function setLabel(name, ) {
         elem.textContent
     }
+    var handlers = {
+        record: ['click', function(track, evt) {
+            var command = evt.target.textContent;
+
+            switch(command) {
+                case 'record':
+                track.startRecording();
+                setStatus('audio', 'recording');
+                evt.target.textContent = labels.record[1];
+                break;
+                case 'stop':
+                track.stopRecording(function() {
+                    setStatus('audio');
+                    elems.perform.style.display = 'block';
+                });
+                evt.target.textContent = labels.record[0];
+                break;
+            }
+
+        }],
+        play: ['click', function(track, evt) {
+            var command = evt.target.textContent;
+            var commandIdx = labels.play.indexOf(command);
+            var rotIdx = Number(! commandIdx);
+
+            switch(command) {
+                case 'play':
+                track.play().then(function() {
+                    console.log('played!', arguments);
+                    evt.target.textContent = labels.play[0];
+                    setStatus('audio');
+                });
+                setStatus('audio', 'playing');
+                evt.target.textContent = labels.play[1];
+                break;
+                case 'stop':
+                track.stop(function(evt) {
+                    setStatus('audio');
+                });
+                evt.target.textContent = labels.play[0];
+                break;
+            }
+            /*
+            [function() {
+                console.log('player');
+                track.play().then(function() {
+                    console.log('played!', arguments);
+                });
+            },
+            function() {
+                console.log('stopper');
+                track.stop(function(evt) {
+                    console.log('ps', evt);
+                });
+            }][commandIdx]();
+
+            evt.target.textContent = labels.play[rotIdx];
+            */
+        }],
+        share: ['click', function(track, evt) {
+            console.log(evt.target.textContent);
+        }]
+    };
 
     function initAudio(options) {
-		var track = new WebAudioTrack();
+		var track = new WebAudioTrack({
+            microphoneStream: options && options.stream || null
+        });
+        elems.record.removeAttribute('disabled');
+        /*
         track.startRecording();
         setTimeout(function() {
             track.stopRecording(function() {
@@ -80,25 +198,32 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             });
             console.log('ok', track.getRecordingTime());
         }, 3000);
+        */
+        return track;
     }
-    function attachHandlers() {
+    function attachHandlers(track, elems, handlers) {
+        for (var target in handlers) {
+            var profile = handlers[target];
+            elems[target].addEventListener(
+                profile[0], 
+                profile[1].bind(null, track)
+            );
+        }
     }
     function init(options) {
-		/*
         navigator.mediaDevices.getUserMedia({audio: true})
         .then(function(stream) {
-            console.log(stream);
-            initAudio();
+            var track = initAudio({stream: stream});
+            attachHandlers(track, elems, handlers);
         })
         .catch(function(err) {
-            //console.log('getUserMedia error:', err);
             console.log(err.name, err.message);
-            //console.error(err);
-			elems.status.textContent = err;
+			elems.status.audio.textContent = err;
         });
-		*/
+        /*
         initAudio();
-        attachHandlers();
+        attachHandlers(elems, handlers);
+        */
     }
     
     init();
@@ -109,7 +234,10 @@ document.addEventListener('DOMContentLoaded', function(evt) {
 <body>
 <nav>
     <div class="logo">edtech demo</div>
-    <div class="status">&nbsp;</div>
+    <div class="status">
+        <div class="audio">&nbsp;</div>
+        <div class="transport">&nbsp;</div>
+    </div>
 </nav>
 <main>
     <button class="record" disabled>record</button>
@@ -118,9 +246,9 @@ document.addEventListener('DOMContentLoaded', function(evt) {
         <!--
         <button class="play">&nbsp;</button>
         <audio controls></audio>
-        -->
-        <input type="range" disabled>
+        <input type="range" disabled value="0">
         <canvas></canvas>
+        -->
         <button class="share">email</button>
     </div>
 </main>

@@ -48,6 +48,8 @@
             self.initCallback = function() {
             };
 
+            self.destination = config.destination || self.context.destination;
+
             bindPrototypeMethods();
         }
 
@@ -93,7 +95,9 @@
             console.log("Playing stream");
 
             this.gainNode = this.context.createGain();
-            this.gainNode.connect(this.context.destination);
+
+            //this.gainNode.connect(this.context.destination);
+            this.gainNode.connect(this.destination);
 
             this.source = this.context.createBufferSource();
             this.source.buffer = this.audioData;
@@ -222,7 +226,9 @@
         _setupProcessor: function() {
             var jsAudioNodeCreator = this.context.createJavaScriptNode ? "createJavaScriptNode" : "createScriptProcessor";
             this.jsAudioNode = this.context[jsAudioNodeCreator](this.bufferSize, this.numberOfAudioChannels, this.numberOfAudioChannels);
-            this.jsAudioNode.connect(this.context.destination);
+
+            //this.jsAudioNode.connect(this.context.destination);
+            this.jsAudioNode.connect(this.destination);
         },
 
         _decodeAudio: function(arrayBuffer, callback) {
