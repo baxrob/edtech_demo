@@ -33,13 +33,17 @@ def index():
         return jsonify(me.data)
     return redirect(url_for('login'))
 
+
 @app.route('/public')
 def public():
     return render_template('main.html')
 
-@app.route('/upload/<int:file_id>', methods=['POST']):
+
+@app.route('/upload/<int:file_id>', methods=['POST'])
 def upload(file_id):
-    print file_id, request.files['file']
+    import ipdb; ipdb.set_trace()
+    print file_id, request
+    return jsonify({file_id: file_id})
 
 
 @app.route('/login')

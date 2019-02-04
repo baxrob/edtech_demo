@@ -90,7 +90,7 @@ function xhr(options) {
         }
     };
     req.open(options.method || 'GET', options.url);
-    req.send(options.body || null);
+    req.send(options.data || null);
 }
 document.addEventListener('DOMContentLoaded', function(evt) {
     var elems = {
@@ -181,6 +181,14 @@ document.addEventListener('DOMContentLoaded', function(evt) {
         }],
         share: ['click', function(track, evt) {
             console.log(evt.target.textContent);
+            xhr({
+                url: 'upload/1',
+                method: 'POST',
+                data: track.getBlobSrc(),
+                success: function() {
+                    console.log(arguments);
+                }
+            });
         }]
     };
 
