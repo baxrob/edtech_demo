@@ -86,7 +86,7 @@ function xhr(options) {
     };
     req.onreadystatechange = function(evt) {
         if (req.readyState == 4 & req.status == 200) {
-            options.success && options.success(evt);
+            options.success && options.success(evt, req);
         }
     };
     req.open(options.method || 'GET', options.url);
@@ -180,11 +180,21 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             */
         }],
         share: ['click', function(track, evt) {
+            var form = new FormData();
+            //form.append('file', track.getBlobSrc());
+            form.append('file', track.blob);
+            form.append('file_id', 123);
             console.log(evt.target.textContent);
+            /*
+            form.append(fileType, fileName);
+            form.append(fileType + '-blob', blob);
+            */
             xhr({
                 url: 'upload/1',
                 method: 'POST',
-                data: track.getBlobSrc(),
+                //data: track.getBlobSrc(),
+                //data: form,
+                data: track.blob,
                 success: function() {
                     console.log(arguments);
                 }
@@ -196,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function(evt) {
 		var track = new WebAudioTrack({
             microphoneStream: options && options.stream || null
         });
+        window.track = track;
         elems.record.removeAttribute('disabled');
         /*
         track.startRecording();

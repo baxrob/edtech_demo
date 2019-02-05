@@ -41,9 +41,12 @@ def public():
 
 @app.route('/upload/<int:file_id>', methods=['POST'])
 def upload(file_id):
-    import ipdb; ipdb.set_trace()
-    print file_id, request
-    return jsonify({file_id: file_id})
+    #import ipdb; ipdb.set_trace()
+    #print file_id, request.form, request.data
+    fd = open('audio/' + str(file_id) + '.wav', 'wb')
+    fd.write(request.data)
+    fd.close()
+    return jsonify({'file_id': file_id})
 
 
 @app.route('/login')
