@@ -1,7 +1,7 @@
 from flask import Flask, redirect, url_for, session, request, jsonify, \
     render_template
 from flask_oauthlib.client import OAuth
-
+from flask_mail import Mail, Message
 
 app = Flask(__name__, template_folder='.')
 app.debug = True
@@ -31,22 +31,41 @@ def index():
     if 'linkedin_token' in session:
         me = linkedin.get('people/~')
         return jsonify(me.data)
+        return render_template('main.html', {
+            'user': me.data
+        })
     return redirect(url_for('login'))
 
 
 @app.route('/public')
 def public():
-    return render_template('main.html')
+    return render_template(
+        'main.html', 
+        user = {
+            'email-address': 'baxrob+edtech@gmail.com'
+        }
+    )
 
 
-@app.route('/upload/<int:file_id>', methods=['POST'])
-def upload(file_id):
+@app.route('/share/<string:file_ident>', methods=['POST'])
+def share(file_ident):
+    if 'linkedin_token' in session:
+        me = linkedin.get('people/~')
+        return jsonify(me.data)
+        return render_template('main.html', {
+            'user': me.data
+        })
+    #return redirect(url_for('login'))
+
     #import ipdb; ipdb.set_trace()
     #print file_id, request.form, request.data
-    fd = open('audio/' + str(file_id) + '.wav', 'wb')
+    from werkzeug.utils import secure_filename
+    # XXX: 512MB limit
+    fd = open('audio/' + str(file_ident) + '.wav', 'wb+')
     fd.write(request.data)
     fd.close()
-    return jsonify({'file_id': file_id})
+    return jsonify({'file_ident': file_ident})
+    return "written %s" % (file_ident)
 
 
 @app.route('/login')

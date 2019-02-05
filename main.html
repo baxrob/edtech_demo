@@ -41,18 +41,18 @@ main {
 
     padding-top: 2%;
 }
+/*
 .perform {
     display: none;
 }
-/*
 .perform > * {
     display: block;
     outline: 1px solid #eee;
 }
-*/
 .perform input, .perform canvas {
 	width: 100%;
 }
+*/
 button {
     margin: 1%;
 
@@ -83,10 +83,22 @@ function xhr(options) {
     req.onerror = function(evt) {
         console.log('err.evt', evt);
         console.log('err.req', req);
+        options.error && options.error(evt, req);
     };
+    /*
+    req.addEventListener('error', function(evt) {
+        console.log('err.evt', evt);
+        console.log('err.req', req);
+        options.error && options.error(2, evt, req);
+    });
+    */
     req.onreadystatechange = function(evt) {
         if (req.readyState == 4 & req.status == 200) {
-            options.success && options.success(evt, req);
+            options.success && options.success(req);
+        } else if (req.status == 404) {
+            options.error && options.error(evt, req);
+        } else {
+            console.log('req stat', req.readyState, req.status);
         }
     };
     req.open(options.method || 'GET', options.url);
@@ -120,12 +132,25 @@ document.addEventListener('DOMContentLoaded', function(evt) {
     function setLabel(name, ) {
         elem.textContent
     }
+    function enableElems() {
+        var args = [].slice.call(arguments);
+        args.forEach(function(name) {
+            elems[name].removeAttribute('disabled');
+        });
+    }
+    function disableElems() {
+        var args = [].slice.call(arguments);
+        args.forEach(function(name) {
+            elems[name].setAttribute('disabled', 'disabled');
+        });
+    }
     var handlers = {
         record: ['click', function(track, evt) {
             var command = evt.target.textContent;
 
             switch(command) {
                 case 'record':
+                disableElems('play', 'share');
                 track.startRecording();
                 setStatus('audio', 'recording');
                 evt.target.textContent = labels.record[1];
@@ -134,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function(evt) {
                 track.stopRecording(function() {
                     setStatus('audio');
                     elems.perform.style.display = 'block';
+                    enableElems('play', 'share');
                 });
                 evt.target.textContent = labels.record[0];
                 break;
@@ -147,8 +173,9 @@ document.addEventListener('DOMContentLoaded', function(evt) {
 
             switch(command) {
                 case 'play':
+                disableElems('record');
                 track.play().then(function() {
-                    console.log('played!', arguments);
+                    enableElems('record');
                     evt.target.textContent = labels.play[0];
                     setStatus('audio');
                 });
@@ -156,6 +183,7 @@ document.addEventListener('DOMContentLoaded', function(evt) {
                 evt.target.textContent = labels.play[1];
                 break;
                 case 'stop':
+                enableElems('record');
                 track.stop(function(evt) {
                     setStatus('audio');
                 });
@@ -185,18 +213,32 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             form.append('file', track.blob);
             form.append('file_id', 123);
             console.log(evt.target.textContent);
-            /*
+            /* ??
             form.append(fileType, fileName);
             form.append(fileType + '-blob', blob);
+            form.append(fileType, blog, fileName);
             */
+            var user_id = 'a';
+            var time_code = Date.now();
+            var file_ident = user_id + '_' + time_code;
+            disableElems('record', 'play', 'share');
+            setStatus('transport', 'saving and sending');
             xhr({
-                url: 'upload/1',
+                url: 'share/' + file_ident,
                 method: 'POST',
                 //data: track.getBlobSrc(),
                 //data: form,
                 data: track.blob,
-                success: function() {
-                    console.log(arguments);
+                success: function(req) {
+                    console.log(req.responseText);
+                    setStatus('transport', null);
+                    enableElems('record', 'play', 'share');
+                },
+                error: function(evt, req) {
+                    console.log('err', arguments);
+                    var errorMsg = 'error: ' + req.status; 
+                    setStatus('transport', errorMsg);
+                    enableElems('record', 'play', 'share');
                 }
             });
         }]
@@ -261,14 +303,14 @@ document.addEventListener('DOMContentLoaded', function(evt) {
 <main>
     <button class="record" disabled>record</button>
     <div class="perform">
-        <button class="play">play</button>
+        <button class="play" disabled>play</button>
         <!--
         <button class="play">&nbsp;</button>
         <audio controls></audio>
         <input type="range" disabled value="0">
         <canvas></canvas>
         -->
-        <button class="share">email</button>
+        <button class="share" disabled>email</button>
     </div>
 </main>
 </body>
