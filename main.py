@@ -8,6 +8,8 @@ app.debug = True
 app.secret_key = 'development'
 oauth = OAuth(app)
 
+mail = Mail(app)
+
 linkedin = oauth.remote_app(
     'linkedin',
     #consumer_key='k8fhkgkkqzub',
@@ -66,6 +68,12 @@ def share(file_ident):
     fd.close()
     return jsonify({'file_ident': file_ident})
     return "written %s" % (file_ident)
+    import os
+    return jsonify({
+        'cwd': os.getcwd(),
+        'file_id': file_id
+    })
+ 
 
 
 @app.route('/login')
