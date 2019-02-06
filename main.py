@@ -8,6 +8,13 @@ app.debug = True
 app.secret_key = 'development'
 oauth = OAuth(app)
 
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'customerjoe6@gmail.com'
+app.config['MAIL_PASSWORD'] = 'pa55ad3na'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_DEFAULT_SENDER'] = '"edtech demo" <baxrob@gmail.com>'
 mail = Mail(app)
 
 linkedin = oauth.remote_app(
@@ -51,12 +58,14 @@ def public():
 
 @app.route('/share/<string:file_ident>', methods=['POST'])
 def share(file_ident):
+    '''
     if 'linkedin_token' in session:
         me = linkedin.get('people/~')
         return jsonify(me.data)
         return render_template('main.html', {
             'user': me.data
         })
+    '''
     #return redirect(url_for('login'))
 
     #import ipdb; ipdb.set_trace()
@@ -66,6 +75,15 @@ def share(file_ident):
     fd = open('audio/' + str(file_ident) + '.wav', 'wb+')
     fd.write(request.data)
     fd.close()
+
+    msg = Message(
+        #recipients=['baxrob+edtech@gmail.com', 'rlb@blandhand.net'],
+        recipients=['rlb@blandhand.net'],
+        body='<a href="https://baxrob.pythonaynwhere.com/play/' + file_ident + '">listen</a>',
+        subject='yada'
+    )
+    mail.send(msg)
+
     return jsonify({'file_ident': file_ident})
     return "written %s" % (file_ident)
     import os
@@ -73,7 +91,20 @@ def share(file_ident):
         'cwd': os.getcwd(),
         'file_id': file_id
     })
- 
+
+
+@app.route('/play/<string:file_ident>')
+def play(file_ident):
+    from os import path
+    #file_path = path.join(config.audio_path, file_ident)
+
+    #1.wav
+    #a_1549404899790.wav  
+    file_ident = 'a_1549406520161'
+    #a_1.wav
+     
+    file_path = path.join('/static/audio/', ''.join([file_ident, '.wav'])) 
+    return render_template('play.html', audio_path=file_path) 
 
 
 @app.route('/login')

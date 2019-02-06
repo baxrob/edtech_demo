@@ -41,32 +41,9 @@ main {
 
     padding-top: 2%;
 }
-/*
-.perform {
-    display: none;
-}
-.perform > * {
-    display: block;
-    outline: 1px solid #eee;
-}
-.perform input, .perform canvas {
-	width: 100%;
-}
-*/
 button {
-    margin: 1%;
-
-    /*
-    */
+    margin: 7% 1% 1% 1%;
     display: block;
-    margin-top: 7%;
-}
-input {
-    margin: 1%;
-}
-canvas {
-    margin: 2% 1% 2% 1%;
-    outline: 1px solid #ccc;
 }
 </style>
 
@@ -92,10 +69,12 @@ function xhr(options) {
         options.error && options.error(2, evt, req);
     });
     */
+	// XXX: ?
+	//req.overrideMimeType('text\/plain; charset=x-user-defined');
     req.onreadystatechange = function(evt) {
         if (req.readyState == 4 & req.status == 200) {
             options.success && options.success(req);
-        } else if (req.status == 404) {
+        } else if (req.status == 404 || req.status == 500) {
             options.error && options.error(evt, req);
         } else {
             console.log('req stat', req.readyState, req.status);
@@ -111,11 +90,7 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             transport: qs('.status .transport'),
         },
         record: qs('.record'),
-        perform: qs('.perform'),
         play: qs('.play'),
-        // XXX:
-        audio: qs('audio'),
-        wave: qs('.perform canvas'),
         share: qs('.share')
     };
     var labels = {
@@ -129,9 +104,6 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             elems.status[field].innerHTML = '&nbsp;';
         }
     }
-    function setLabel(name, ) {
-        elem.textContent
-    }
     function enableElems() {
         var args = [].slice.call(arguments);
         args.forEach(function(name) {
@@ -144,6 +116,14 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             elems[name].setAttribute('disabled', 'disabled');
         });
     }
+	function haltRecording(track, elem, message) {
+		track.stopRecording(function() {
+            track.endTime = Date.now();
+			enableElems('play', 'share');
+			setStatus('audio', 'recording time ended');
+		});
+	}
+
     var handlers = {
         record: ['click', function(track, evt) {
             var command = evt.target.textContent;
@@ -154,12 +134,29 @@ document.addEventListener('DOMContentLoaded', function(evt) {
                 track.startRecording();
                 setStatus('audio', 'recording');
                 evt.target.textContent = labels.record[1];
+                var timeLimit = 3 * 60 * 1000;
+                var timeLimit = 0.2 * 60 * 1000;
+				var haltTimeout = setTimeout(function() {
+					//haltRecording(track, evt.target, 'recording time expended);
+                    /*
+                    track.endTime = Date.now();
+                    enableElems('play', 'share');
+                    setStatus('audio', 'recording time expended');
+                    */
+                    track.stopRecording(function() {
+                        track.endTime = Date.now();
+                        enableElems('play', 'share');
+                        setStatus('audio', 'recording time ended');
+                        evt.target.textContent = labels.record[0];
+                    });
+				}, timeLimit);
                 break;
                 case 'stop':
                 track.stopRecording(function() {
-                    setStatus('audio');
-                    elems.perform.style.display = 'block';
+                    clearTimeout(haltTimeout);
+                    track.endTime = Date.now();
                     enableElems('play', 'share');
+                    setStatus('audio');
                 });
                 evt.target.textContent = labels.record[0];
                 break;
@@ -190,22 +187,6 @@ document.addEventListener('DOMContentLoaded', function(evt) {
                 evt.target.textContent = labels.play[0];
                 break;
             }
-            /*
-            [function() {
-                console.log('player');
-                track.play().then(function() {
-                    console.log('played!', arguments);
-                });
-            },
-            function() {
-                console.log('stopper');
-                track.stop(function(evt) {
-                    console.log('ps', evt);
-                });
-            }][commandIdx]();
-
-            evt.target.textContent = labels.play[rotIdx];
-            */
         }],
         share: ['click', function(track, evt) {
             var form = new FormData();
@@ -218,8 +199,10 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             form.append(fileType + '-blob', blob);
             form.append(fileType, blog, fileName);
             */
+            var user_id = window.user_id;
             var user_id = 'a';
             var time_code = Date.now();
+            var time_code = track.endTime;
             var file_ident = user_id + '_' + time_code;
             disableElems('record', 'play', 'share');
             setStatus('transport', 'saving and sending');
