@@ -54,9 +54,7 @@ def index():
         #return jsonify(me.data)
         me = linkedin.get('people/~:(id,email-address)?format=json')
         me = linkedin.get('people/~:(id,email-address)')
-        return render_template('main.html', {
-            'user': me.data
-        })
+        return render_template('main.html', user=me.data)
     if app.config['FAKE_LOGIN']:
         return render_template(
             'main.html', 
@@ -87,13 +85,15 @@ def share(file_ident):
         #me = linkedin.get('people/~')
         if 'linkedin_token' in session:
             me = linkedin.get('people/~:(id,email-address)?format=json')
+            me = linkedin.get('people/~:(id,email-address)?format=json')
+            user_data = me.data
             #return jsonify(me.data)
             #return render_template('main.html', user=me.data)
         else:
-            me = {'id': '0000', 'email-address': 'baxrob+edtech@gmail.com'}
+            user_data = {'id': '0000', 'email-address': 'baxrob+edtech@gmail.com'}
 
         file_user = file_ident.split('_')[0]
-        if me['id'] != file_user:
+        if user_data['id'] != file_user:
             return jsonify({
                 'error': 'user mismatch'
             })
@@ -111,7 +111,7 @@ def share(file_ident):
 
         msg = Message(
             #recipients=['baxrob+edtech@gmail.com', 'rlb@blandhand.net'],
-            recipients=[me['email-address']],
+            recipients=[user_data['email-address']],
             body='https://baxrob.pythonanywhere.com/play/' + file_ident,
             subject='Edtech demo recording'
         )
@@ -139,13 +139,14 @@ def play(file_ident):
         #me = linkedin.get('people/~')
         if 'linkedin_token' in session:
             me = linkedin.get('people/~:(id,email-address)?format=json')
+            user_data = me.data
             #return jsonify(me.data)
             #return render_template('main.html', user=me.data)
         else:
-            me = {'id': '0000', 'email-address': 'baxrob+edtech@gmail.com'}
+            user_data = {'id': '0000', 'email-address': 'baxrob+edtech@gmail.com'}
 
         file_user = file_ident.split('_')[0]
-        if me['id'] != file_user:
+        if user_data['id'] != file_user:
             return jsonify({
                 'error': 'user mismatch'
             })
