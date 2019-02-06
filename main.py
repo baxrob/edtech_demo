@@ -73,6 +73,7 @@ def public():
     return render_template(
         'main.html', 
         user = {
+            'id': '0000',
             'email-address': 'baxrob+edtech@gmail.com'
         }
     )
@@ -81,43 +82,49 @@ def public():
 @app.route('/share/<string:file_ident>', methods=['POST'])
 def share(file_ident):
     '''
-    if 'linkedin_token' in session:
-        me = linkedin.get('people/~')
-        me = linkedin.get('people/~:(id,email-address)?format=json')
-        return jsonify(me.data)
-        return render_template('main.html', {
-            'user': me.data
-        })
     '''
-    #return redirect(url_for('login'))
+    if app.config['FAKE_LOGIN'] or 'linkedin_token' in session:
+        #me = linkedin.get('people/~')
+        if 'linkedin_token' in session:
+            me = linkedin.get('people/~:(id,email-address)?format=json')
+            #return jsonify(me.data)
+            #return render_template('main.html', user=me.data)
+        else:
+            me = {'id': '0000', 'email-address': 'baxrob+edtech@gmail.com'}
 
-    #import ipdb; ipdb.set_trace()
-    #print file_id, request.form, request.data
-    # XXX: 512MB limit
-    file_path = os.path.join(
-        app.root_path,
-        app.config['AUDIO_PATH'],
-        secure_filename(''.join([str(file_ident), '.wav']))
-    )
-    #fd = open('audio/' + str(file_ident) + '.wav', 'wb+')
-    fd = open(file_path, 'wb+')
-    fd.write(request.data)
-    fd.close()
+        file_user = file_ident.split('_')[0]
+        if me['id'] != file_user:
+            return jsonify({
+                'error': 'user mismatch'
+            })
 
-    msg = Message(
-        #recipients=['baxrob+edtech@gmail.com', 'rlb@blandhand.net'],
-        recipients=['rlb@blandhand.net'],
-        body='https://baxrob.pythonanywhere.com/play/' + file_ident,
-        subject='Edtech demo recording'
-    )
-    mail.send(msg)
+        # XXX: 512MB limit
+        file_path = os.path.join(
+            app.root_path,
+            app.config['AUDIO_PATH'],
+            secure_filename(''.join([str(file_ident), '.wav']))
+        )
+        #fd = open('audio/' + str(file_ident) + '.wav', 'wb+')
+        fd = open(file_path, 'wb+')
+        fd.write(request.data)
+        fd.close()
 
-    return jsonify({'file_ident': file_ident})
-    return "written %s" % (file_ident)
-    return jsonify({
-        'cwd': os.getcwd(),
-        'file_id': file_id
-    })
+        msg = Message(
+            #recipients=['baxrob+edtech@gmail.com', 'rlb@blandhand.net'],
+            recipients=[me['email-address']],
+            body='https://baxrob.pythonanywhere.com/play/' + file_ident,
+            subject='Edtech demo recording'
+        )
+        mail.send(msg)
+
+        return jsonify({'file_ident': file_ident})
+        return "written %s" % (file_ident)
+        return jsonify({
+            'cwd': os.getcwd(),
+            'file_id': file_id
+        })
+
+    return redirect(url_for('login'))
 
 
 @app.route('/play/<string:file_ident>')
@@ -128,13 +135,29 @@ def play(file_ident):
     #a_1549404899790.wav  
     #file_ident = 'a_1549406520161'
     #a_1.wav
-     
-    file_path = os.path.join(
-        '/',
-        app.config['AUDIO_PATH'], 
-        ''.join([file_ident, '.wav'])
-    ) 
-    return render_template('play.html', audio_path=file_path) 
+    if app.config['FAKE_LOGIN'] or 'linkedin_token' in session:
+        #me = linkedin.get('people/~')
+        if 'linkedin_token' in session:
+            me = linkedin.get('people/~:(id,email-address)?format=json')
+            #return jsonify(me.data)
+            #return render_template('main.html', user=me.data)
+        else:
+            me = {'id': '0000', 'email-address': 'baxrob+edtech@gmail.com'}
+
+        file_user = file_ident.split('_')[0]
+        if me['id'] != file_user:
+            return jsonify({
+                'error': 'user mismatch'
+            })
+         
+        file_path = os.path.join(
+            '/',
+            app.config['AUDIO_PATH'], 
+            ''.join([file_ident, '.wav'])
+        ) 
+        return render_template('play.html', audio_path=file_path) 
+
+    return redirect(url_for('login'))
 
 
 @app.route('/login')

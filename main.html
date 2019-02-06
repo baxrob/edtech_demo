@@ -49,6 +49,8 @@ button {
 
 <script src="static/WebAudioTrack.js"></script>
 <script>
+window.user_id = '{{ user.id }}';
+
 function qs() {
     return document.querySelector.apply(document, arguments);
 }
@@ -203,8 +205,8 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             form.append(fileType, blog, fileName);
             */
             var user_id = window.user_id;
-            var user_id = 'a';
-            var time_code = Date.now();
+            //var user_id = 'a';
+            //var time_code = Date.now();
             var time_code = track.endTime;
             var file_ident = user_id + '_' + time_code;
             disableElems('record', 'play', 'share');
