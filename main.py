@@ -1,13 +1,22 @@
+import os
+
+from werkzeug.utils import secure_filename
 from flask import Flask, redirect, url_for, session, request, jsonify, \
     render_template
 from flask_oauthlib.client import OAuth
 from flask_mail import Mail, Message
 
 app = Flask(__name__, template_folder='.')
-app.debug = True
-app.secret_key = 'development'
+
+#app.debug = True
+#app.secret_key = 'development'
+
+app.config.from_object('local_config')
+#print app.config['LINKEDIN_KEY']
+
 oauth = OAuth(app)
 
+'''
 app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USERNAME'] = 'customerjoe6@gmail.com'
@@ -15,17 +24,20 @@ app.config['MAIL_PASSWORD'] = 'pa55ad3na'
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_DEFAULT_SENDER'] = '"edtech demo" <baxrob@gmail.com>'
+'''
 mail = Mail(app)
+
+#import ipdb; ipdb.set_trace()
 
 linkedin = oauth.remote_app(
     'linkedin',
-    #consumer_key='k8fhkgkkqzub',
-    #consumer_secret='ZZtLETQOQYNDjMrz',
-    consumer_key='863rzse5mrubtb',
-    consumer_secret='Ju9kwzCg2cIcBugP',
+    #consumer_key='863rzse5mrubtb',
+    #consumer_secret='Ju9kwzCg2cIcBugP',
+    consumer_key=app.config['LINKEDIN_CONSUMER_KEY'],
+    consumer_secret=app.config['LINKEDIN_CONSUMER_SECRET'],
     request_token_params={
         'scope': 'r_basicprofile r_emailaddress',
-        'state': 'RandomString',
+        'state': 'aIEj8PmU6j2l9w',
     },
     base_url='https://api.linkedin.com/v1/',
     request_token_url=None,
@@ -39,10 +51,20 @@ linkedin = oauth.remote_app(
 def index():
     if 'linkedin_token' in session:
         me = linkedin.get('people/~')
-        return jsonify(me.data)
+        #return jsonify(me.data)
+        me = linkedin.get('people/~:(id,email-address)?format=json')
+        me = linkedin.get('people/~:(id,email-address)')
         return render_template('main.html', {
             'user': me.data
         })
+    if app.config['FAKE_LOGIN']:
+        return render_template(
+            'main.html', 
+            user={
+                'id': '0000',
+                'email-address': 'baxrob+edtech@gmail.com'
+            }
+        )
     return redirect(url_for('login'))
 
 
@@ -61,6 +83,7 @@ def share(file_ident):
     '''
     if 'linkedin_token' in session:
         me = linkedin.get('people/~')
+        me = linkedin.get('people/~:(id,email-address)?format=json')
         return jsonify(me.data)
         return render_template('main.html', {
             'user': me.data
@@ -70,23 +93,27 @@ def share(file_ident):
 
     #import ipdb; ipdb.set_trace()
     #print file_id, request.form, request.data
-    from werkzeug.utils import secure_filename
     # XXX: 512MB limit
-    fd = open('audio/' + str(file_ident) + '.wav', 'wb+')
+    file_path = os.path.join(
+        app.root_path,
+        app.config['AUDIO_PATH'],
+        secure_filename(''.join([str(file_ident), '.wav']))
+    )
+    #fd = open('audio/' + str(file_ident) + '.wav', 'wb+')
+    fd = open(file_path, 'wb+')
     fd.write(request.data)
     fd.close()
 
     msg = Message(
         #recipients=['baxrob+edtech@gmail.com', 'rlb@blandhand.net'],
         recipients=['rlb@blandhand.net'],
-        body='<a href="https://baxrob.pythonaynwhere.com/play/' + file_ident + '">listen</a>',
-        subject='yada'
+        body='https://baxrob.pythonanywhere.com/play/' + file_ident,
+        subject='Edtech demo recording'
     )
     mail.send(msg)
 
     return jsonify({'file_ident': file_ident})
     return "written %s" % (file_ident)
-    import os
     return jsonify({
         'cwd': os.getcwd(),
         'file_id': file_id
@@ -95,15 +122,18 @@ def share(file_ident):
 
 @app.route('/play/<string:file_ident>')
 def play(file_ident):
-    from os import path
     #file_path = path.join(config.audio_path, file_ident)
 
     #1.wav
     #a_1549404899790.wav  
-    file_ident = 'a_1549406520161'
+    #file_ident = 'a_1549406520161'
     #a_1.wav
      
-    file_path = path.join('/static/audio/', ''.join([file_ident, '.wav'])) 
+    file_path = os.path.join(
+        '/',
+        app.config['AUDIO_PATH'], 
+        ''.join([file_ident, '.wav'])
+    ) 
     return render_template('play.html', audio_path=file_path) 
 
 
@@ -130,6 +160,7 @@ def authorized():
     session['linkedin_token'] = (resp['access_token'], '')
     me = linkedin.get('people/~')
     me = linkedin.get('people/~:(id,num-connections,picture-url)?format=json')
+    me = linkedin.get('people/~:(id,email-address)?format=json')
     return jsonify(me.data)
 
 

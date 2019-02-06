@@ -148,7 +148,6 @@
         },
 
         stopRecording: function(callback) {
-            console.log('foo');
             if (this.isCaptureInProgress) {
                 this.isCaptureInProgress = false;
                 return;

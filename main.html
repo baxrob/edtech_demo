@@ -17,7 +17,7 @@ body {
 }
 nav {
     width: 100%;
-	overflow: auto;
+    overflow: auto;
 }
 nav > div {
     float: left;
@@ -36,7 +36,7 @@ nav .status > div {
     outline: 1px solid #eee;
 }
 main {
-	padding: 1% 20% 10% 20%;
+    padding: 1% 20% 10% 20%;
     border-top: 1px solid #ccc;
 
     padding-top: 2%;
@@ -69,8 +69,8 @@ function xhr(options) {
         options.error && options.error(2, evt, req);
     });
     */
-	// XXX: ?
-	//req.overrideMimeType('text\/plain; charset=x-user-defined');
+    // XXX: ?
+    //req.overrideMimeType('text\/plain; charset=x-user-defined');
     req.onreadystatechange = function(evt) {
         if (req.readyState == 4 & req.status == 200) {
             options.success && options.success(req);
@@ -116,14 +116,15 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             elems[name].setAttribute('disabled', 'disabled');
         });
     }
-	function haltRecording(track, elem, message) {
-		track.stopRecording(function() {
+    function haltRecording(track, elem, message) {
+        track.stopRecording(function() {
             track.endTime = Date.now();
-			enableElems('play', 'share');
-			setStatus('audio', 'recording time ended');
-		});
-	}
+            enableElems('play', 'share');
+            setStatus('audio', 'recording time ended');
+        });
+    }
 
+    var haltTimeout;
     var handlers = {
         record: ['click', function(track, evt) {
             var command = evt.target.textContent;
@@ -133,11 +134,12 @@ document.addEventListener('DOMContentLoaded', function(evt) {
                 disableElems('play', 'share');
                 track.startRecording();
                 setStatus('audio', 'recording');
+                setStatus('transport', null);
                 evt.target.textContent = labels.record[1];
                 var timeLimit = 3 * 60 * 1000;
                 var timeLimit = 0.2 * 60 * 1000;
-				var haltTimeout = setTimeout(function() {
-					//haltRecording(track, evt.target, 'recording time expended);
+                haltTimeout = setTimeout(function() {
+                    //haltRecording(track, evt.target, 'recording time expended);
                     /*
                     track.endTime = Date.now();
                     enableElems('play', 'share');
@@ -149,14 +151,15 @@ document.addEventListener('DOMContentLoaded', function(evt) {
                         setStatus('audio', 'recording time ended');
                         evt.target.textContent = labels.record[0];
                     });
-				}, timeLimit);
+                }, timeLimit);
                 break;
                 case 'stop':
                 track.stopRecording(function() {
+                    console.log('clearing', haltTimeout);
                     clearTimeout(haltTimeout);
                     track.endTime = Date.now();
                     enableElems('play', 'share');
-                    setStatus('audio');
+                    setStatus('audio', null);
                 });
                 evt.target.textContent = labels.record[0];
                 break;
@@ -174,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function(evt) {
                 track.play().then(function() {
                     enableElems('record');
                     evt.target.textContent = labels.play[0];
-                    setStatus('audio');
+                    setStatus('audio', null);
                 });
                 setStatus('audio', 'playing');
                 evt.target.textContent = labels.play[1];
@@ -182,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function(evt) {
                 case 'stop':
                 enableElems('record');
                 track.stop(function(evt) {
-                    setStatus('audio');
+                    setStatus('audio', null);
                 });
                 evt.target.textContent = labels.play[0];
                 break;
@@ -214,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function(evt) {
                 data: track.blob,
                 success: function(req) {
                     console.log(req.responseText);
-                    setStatus('transport', null);
+                    setStatus('transport', 'email sent');
                     enableElems('record', 'play', 'share');
                 },
                 error: function(evt, req) {
@@ -228,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function(evt) {
     };
 
     function initAudio(options) {
-		var track = new WebAudioTrack({
+        var track = new WebAudioTrack({
             microphoneStream: options && options.stream || null
         });
         window.track = track;
@@ -262,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function(evt) {
         })
         .catch(function(err) {
             console.log(err.name, err.message);
-			elems.status.audio.textContent = err;
+            elems.status.audio.textContent = err;
         });
         /*
         initAudio();
