@@ -6,11 +6,59 @@
 <title>edtech ad demo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+html {
+    height: 100%;
+}
+body {
+    margin: 0;
+    font-family: sans-serif;
+    height: 100%;
+}
+nav {
+    width: 100%;
+    overflow: auto;
+}
+nav > div {
+    float: left;
+}
+nav .logo {
+    width: 48%;
+    padding: 1%;
+}
+nav .status {
+    width: 50%;
+    font-size: 0.8em;
+}
+nav .status > div {
+    height: 48%;
+    padding: 1%;
+    outline: 1px solid #eee;
+}
+main {
+    //padding: 2% 20% 10% 20%;
+    border-top: 1px solid #ccc;
+}
+audio {
+    margin: 5% 1% 1% 3%;
+    max-width: 100%;
+}
+a, a:hover, a:visited {
+    color: #000;
+}
 </style>
 <script>
 </script>
 </head>
 <body>
-<audio src="{{ audio_path }}" controls></audio>
+<nav>
+    <div class="logo"><a href="/">edtech demo</a></div>
+    <div class="status">
+        <div class="audio">&nbsp;</div>
+        <div class="transport">&nbsp;</div>
+    </div>
+</nav>
+<main>
+    <audio src="{{ audio_path }}" controls></audio>
+</main>
 </body>
 </html>

@@ -54,7 +54,8 @@ def index():
         #return jsonify(me.data)
         me = linkedin.get('people/~:(id,email-address)?format=json')
         me = linkedin.get('people/~:(id,email-address)')
-        return render_template('main.html', user=me.data)
+        if me.data.has_key('id'):
+            return render_template('main.html', user=me.data)
     if app.config['FAKE_LOGIN']:
         return render_template(
             'main.html', 
@@ -87,6 +88,8 @@ def share(file_ident):
             me = linkedin.get('people/~:(id,email-address)?format=json')
             me = linkedin.get('people/~:(id,email-address)?format=json')
             user_data = me.data
+            if not user_data.has_key('id'):
+                return redirect(url_for('login'))
             #return jsonify(me.data)
             #return render_template('main.html', user=me.data)
         else:

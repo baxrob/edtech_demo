@@ -36,10 +36,8 @@ nav .status > div {
     outline: 1px solid #eee;
 }
 main {
-    padding: 1% 20% 10% 20%;
+    padding: 2% 20% 10% 20%;
     border-top: 1px solid #ccc;
-
-    padding-top: 2%;
 }
 button {
     margin: 7% 1% 1% 1%;
@@ -50,41 +48,6 @@ button {
 <script src="static/WebAudioTrack.js"></script>
 <script>
 window.user_id = '{{ user.id }}';
-
-function qs() {
-    return document.querySelector.apply(document, arguments);
-}
-function objType(obj) {
-    return Object.prototype.toString.call(obj).match(/(\w+)\]/)[1];
-}
-function xhr(options) {
-    var req = new XMLHttpRequest();
-    req.onerror = function(evt) {
-        console.log('err.evt', evt);
-        console.log('err.req', req);
-        options.error && options.error(evt, req);
-    };
-    /*
-    req.addEventListener('error', function(evt) {
-        console.log('err.evt', evt);
-        console.log('err.req', req);
-        options.error && options.error(2, evt, req);
-    });
-    */
-    // XXX: ?
-    //req.overrideMimeType('text\/plain; charset=x-user-defined');
-    req.onreadystatechange = function(evt) {
-        if (req.readyState == 4 & req.status == 200) {
-            options.success && options.success(req);
-        } else if (req.status == 404 || req.status == 500) {
-            options.error && options.error(evt, req);
-        } else {
-            console.log('req stat', req.readyState, req.status);
-        }
-    };
-    req.open(options.method || 'GET', options.url);
-    req.send(options.data || null);
-}
 document.addEventListener('DOMContentLoaded', function(evt) {
     var elems = {
         status: {
@@ -118,13 +81,6 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             elems[name].setAttribute('disabled', 'disabled');
         });
     }
-    function haltRecording(track, elem, message) {
-        track.stopRecording(function() {
-            track.endTime = Date.now();
-            enableElems('play', 'share');
-            setStatus('audio', 'recording time ended');
-        });
-    }
 
     var haltTimeout;
     var handlers = {
@@ -138,15 +94,9 @@ document.addEventListener('DOMContentLoaded', function(evt) {
                 setStatus('audio', 'recording');
                 setStatus('transport', null);
                 evt.target.textContent = labels.record[1];
-                var timeLimit = 3 * 60 * 1000;
+                //var timeLimit = 3 * 60 * 1000;
                 var timeLimit = 0.2 * 60 * 1000;
                 haltTimeout = setTimeout(function() {
-                    //haltRecording(track, evt.target, 'recording time expended);
-                    /*
-                    track.endTime = Date.now();
-                    enableElems('play', 'share');
-                    setStatus('audio', 'recording time expended');
-                    */
                     track.stopRecording(function() {
                         track.endTime = Date.now();
                         enableElems('play', 'share');
@@ -157,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function(evt) {
                 break;
                 case 'stop':
                 track.stopRecording(function() {
-                    console.log('clearing', haltTimeout);
                     clearTimeout(haltTimeout);
                     track.endTime = Date.now();
                     enableElems('play', 'share');
@@ -170,8 +119,6 @@ document.addEventListener('DOMContentLoaded', function(evt) {
         }],
         play: ['click', function(track, evt) {
             var command = evt.target.textContent;
-            var commandIdx = labels.play.indexOf(command);
-            var rotIdx = Number(! commandIdx);
 
             switch(command) {
                 case 'play':
@@ -195,18 +142,7 @@ document.addEventListener('DOMContentLoaded', function(evt) {
         }],
         share: ['click', function(track, evt) {
             var form = new FormData();
-            //form.append('file', track.getBlobSrc());
-            form.append('file', track.blob);
-            form.append('file_id', 123);
-            console.log(evt.target.textContent);
-            /* ??
-            form.append(fileType, fileName);
-            form.append(fileType + '-blob', blob);
-            form.append(fileType, blog, fileName);
-            */
             var user_id = window.user_id;
-            //var user_id = 'a';
-            //var time_code = Date.now();
             var time_code = track.endTime;
             var file_ident = user_id + '_' + time_code;
             disableElems('record', 'play', 'share');
@@ -214,8 +150,6 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             xhr({
                 url: 'share/' + file_ident,
                 method: 'POST',
-                //data: track.getBlobSrc(),
-                //data: form,
                 data: track.blob,
                 success: function(req) {
                     console.log(req.responseText);
@@ -238,16 +172,6 @@ document.addEventListener('DOMContentLoaded', function(evt) {
         });
         window.track = track;
         elems.record.removeAttribute('disabled');
-        /*
-        track.startRecording();
-        setTimeout(function() {
-            track.stopRecording(function() {
-                console.log('done', track.getRecordingTime());
-                //elems.audio.src = track.getBlobSrc();
-            });
-            console.log('ok', track.getRecordingTime());
-        }, 3000);
-        */
         return track;
     }
     function attachHandlers(track, elems, handlers) {
@@ -269,14 +193,34 @@ document.addEventListener('DOMContentLoaded', function(evt) {
             console.log(err.name, err.message);
             elems.status.audio.textContent = err;
         });
-        /*
-        initAudio();
-        attachHandlers(elems, handlers);
-        */
     }
     
     init();
 });
+
+// Util
+function qs() {
+    return document.querySelector.apply(document, arguments);
+}
+function xhr(options) {
+    var req = new XMLHttpRequest();
+    req.onerror = function(evt) {
+        options.error && options.error(evt, req);
+    };
+    // XXX: legacy browser support ?
+    //req.overrideMimeType('text\/plain; charset=x-user-defined');
+    req.onreadystatechange = function(evt) {
+        if (req.readyState == 4 & req.status == 200) {
+            options.success && options.success(req);
+        } else if (req.status == 404 || req.status == 500) {
+            options.error && options.error(evt, req);
+        } else {
+            console.log('req stat', req.readyState, req.status);
+        }
+    };
+    req.open(options.method || 'GET', options.url);
+    req.send(options.data || null);
+}
 </script>
 </head>
 
@@ -292,12 +236,6 @@ document.addEventListener('DOMContentLoaded', function(evt) {
     <button class="record" disabled>record</button>
     <div class="perform">
         <button class="play" disabled>play</button>
-        <!--
-        <button class="play">&nbsp;</button>
-        <audio controls></audio>
-        <input type="range" disabled value="0">
-        <canvas></canvas>
-        -->
         <button class="share" disabled>email</button>
     </div>
 </main>
