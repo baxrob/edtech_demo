@@ -188,6 +188,7 @@ def authorized():
     me = linkedin.get('people/~')
     me = linkedin.get('people/~:(id,num-connections,picture-url)?format=json')
     me = linkedin.get('people/~:(id,email-address)?format=json')
+    return redirect(url_for('index'))
     return jsonify(me.data)
 
 

@@ -47,7 +47,10 @@ button {
 
 <script src="static/WebAudioTrack.js"></script>
 <script>
+console.log('{{ user.id }}', '{{ user.emailAddress }}');
+
 window.user_id = '{{ user.id }}';
+
 document.addEventListener('DOMContentLoaded', function(evt) {
     var elems = {
         status: {
