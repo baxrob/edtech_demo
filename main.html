@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>edtech ad demo</title>
+<title>edtech ad demo : record</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -210,10 +210,8 @@ function xhr(options) {
     req.onerror = function(evt) {
         options.error && options.error(evt, req);
     };
-    // XXX: legacy browser support ?
-    //req.overrideMimeType('text\/plain; charset=x-user-defined');
     req.onreadystatechange = function(evt) {
-        if (req.readyState == 4 & req.status == 200) {
+        if (req.readyState == 4 && req.status == 200) {
             options.success && options.success(req);
         } else if (req.status == 404 || req.status == 500) {
             options.error && options.error(evt, req);
