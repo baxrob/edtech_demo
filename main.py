@@ -60,7 +60,7 @@ def index():
             'main.html', 
             user={
                 'id': '0000',
-                'email-address': 'baxrob+edtech@gmail.com'
+                'emailAddress': 'baxrob+edtech@gmail.com'
             }
         )
     return redirect(url_for('login'))
@@ -72,7 +72,7 @@ def public():
         'main.html', 
         user = {
             'id': '0000',
-            'email-address': 'baxrob+edtech@gmail.com'
+            'emailAddress': 'baxrob+edtech@gmail.com'
         }
     )
 
@@ -90,7 +90,7 @@ def share(file_ident):
             #return jsonify(me.data)
             #return render_template('main.html', user=me.data)
         else:
-            user_data = {'id': '0000', 'email-address': 'baxrob+edtech@gmail.com'}
+            user_data = {'id': '0000', 'emailAddress': 'baxrob+edtech@gmail.com'}
 
         file_user = file_ident.split('_')[0]
         if user_data['id'] != file_user:
@@ -111,7 +111,7 @@ def share(file_ident):
 
         msg = Message(
             #recipients=['baxrob+edtech@gmail.com', 'rlb@blandhand.net'],
-            recipients=[user_data['email-address']],
+            recipients=[user_data['emailAddress']],
             body='https://baxrob.pythonanywhere.com/play/' + file_ident,
             subject='Edtech demo recording'
         )
@@ -143,7 +143,7 @@ def play(file_ident):
             #return jsonify(me.data)
             #return render_template('main.html', user=me.data)
         else:
-            user_data = {'id': '0000', 'email-address': 'baxrob+edtech@gmail.com'}
+            user_data = {'id': '0000', 'emailAddress': 'baxrob+edtech@gmail.com'}
 
         file_user = file_ident.split('_')[0]
         if user_data['id'] != file_user:
