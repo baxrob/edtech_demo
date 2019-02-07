@@ -144,13 +144,19 @@ def play(file_ident):
 
 @app.route('/login')
 def login():
+    return render_template('login.html');
+
+
+@app.route('/dispatch_login')
+def dispatch_login():
     return linkedin.authorize(callback=url_for('authorized', _external=True))
 
 
 @app.route('/logout')
 def logout():
     session.pop('linkedin_token', None)
-    return redirect(url_for('index'))
+    # XXX: home should not auto-login
+    return redirect(url_for('login'))
 
 
 @app.route('/login/authorized')

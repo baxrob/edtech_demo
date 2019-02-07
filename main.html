@@ -15,6 +15,9 @@ body {
     font-family: sans-serif;
     height: 100%;
 }
+a, a:hover, a:visited {
+    color: #000;
+}
 nav {
     width: 100%;
     overflow: auto;
@@ -22,10 +25,22 @@ nav {
 nav > div {
     float: left;
 }
+nav .brand {
+    width: 50%;
+}
+nav .brand .logo {
+    padding: 1% 0 0 2%;
+}
+nav .logout {
+    font-size: 0.8em;
+    margin: 0 0 0 5%;
+}
+/*
 nav .logo {
     width: 48%;
     padding: 1%;
 }
+*/
 nav .status {
     width: 50%;
     font-size: 0.8em;
@@ -227,7 +242,15 @@ function xhr(options) {
 
 <body>
 <nav>
+    <div class="brand">
+        <div class="logo">edtech demo</div>
+        <div class="logout">
+            <a href="/logout">logout</a>
+        </div>
+    </div>
+    <!--
     <div class="logo">edtech demo</div>
+    -->
     <div class="status">
         <div class="audio">&nbsp;</div>
         <div class="transport">&nbsp;</div>
